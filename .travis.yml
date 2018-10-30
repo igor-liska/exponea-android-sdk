@@ -1,0 +1,48 @@
+language: android
+sudo: required
+jdk: oraclejdk8
+before_cache:
+  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+env:
+  global:
+    - ANDROID_API_LEVEL=27
+    - EMULATOR_API_LEVEL=23
+    - ADB_INSTALL_TIMEOUT=15
+    - ANDROID_ABI=armeabi-v7a
+    - BUILD_TOOLS_VERSION=28.0.3
+
+android:
+  components:
+    - tools
+    - platform-tools
+    - extra-android-support
+    - extra-android-m2repository
+    - extra-google-m2repository
+    - addon-google_apis-google-$ANDROID_API_LEVEL
+    - sys-img-armeabi-v7a-android-$ANDROID_API_LEVEL
+    - sys-img-armeabi-v7a-android-$EMULATOR_API_LEVEL
+    - addon-google_apis-google-$ANDROID_API_LEVEL
+    - sys-img-x86_64-google_apis-$ANDROID_API_LEVEL
+    - build-tools-$BUILD_TOOLS_VERSION
+    - android-$ANDROID_API_LEVEL
+
+cache:
+  directories:
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
+  - "$HOME/.android/build-cache"
+
+before_install:
+  - touch /home/travis/.android/repositories.cfg
+  - yes | sdkmanager --update
+  - yes | sdkmanager "system-images;android-$EMULATOR_API_LEVEL;google_apis;x86_64"
+  - yes | sdkmanager "build-tools;"$BUILD_TOOLS_VERSION
+  - yes | sdkmanager --licenses
+  - which avdmanager
+  - sdkmanager --list
+  - chmod +x gradlew
+  - "./gradlew dependencies || true"
+
+script:
+  - "./gradlew clean test"
